@@ -5,6 +5,7 @@ Module Program
     Const BOARD_WIDTH As Integer = 7
     Const BOARD_HEIGHT As Integer = 6
     Const NUMBER_OF_PLAYERS As Integer = 2
+    Const EMPTY_SLOT As String = "# "
 
 
     Sub Main(args As String())
@@ -18,7 +19,7 @@ Module Program
         Console.Clear()
         Console.WriteLine($"Hello {players(0)} and {players(1)}, I am the Connect 4 program")
 
-        System.Threading.Thread.Sleep(1000)
+        'System.Threading.Thread.Sleep(1000)
 
         Console.Clear()
 
@@ -70,14 +71,46 @@ Module Program
 
         PrintBoard(gameBoard)
 
-        Dim playing As Boolean = True
+        Do
+            For Each symbol In playerSymbols
+                PlaceCounter(symbol, gameBoard)
+                Console.Clear()
+                PrintBoard(gameBoard)
+            Next
+        Loop
+    End Sub
 
-        While playing
+    Sub PlaceCounter(ByVal symbol As Char, ByRef board(,) As String)
 
+        'Get and validate the column that the player wants to move in
+        Dim placeLocation As Integer
+        Do
+            placeLocation = GetIntInput($"What column would you like to place it in? (1-{BOARD_WIDTH})") - 1
 
+            'Ensure desired move is within range and is available
+            If Not IsInRange(placeLocation, BOARD_WIDTH - 1, 0) Then
+                Console.WriteLine($"Failed isinrange check")
+            ElseIf Not board(0, placeLocation) = EMPTY_SLOT Then
+                Console.WriteLine($"Failed board position check")
+            Else
+                Exit Do
+            End If
 
-        End While
+            Console.WriteLine($"Please select a slot from 1-{BOARD_WIDTH} that is available")
+        Loop
 
+        Console.WriteLine("Got out of location validation")
+
+        'Check slots below the placed location and move down if possible
+        For i As Integer = 0 To BOARD_HEIGHT - 1
+            If board(i + 1, placeLocation) = EMPTY_SLOT Then
+                'If the spot below is empty, do nothing and move further down
+            Else
+                'Once there are no more empty spots, place the counter
+                board(i, placeLocation) = symbol & " "
+                Exit For
+            End If
+        Next
     End Sub
 
 
@@ -117,10 +150,10 @@ Module Program
 
     Sub InitBoard(ByVal board(,) As String)
 
-        For i As Integer = 0 To BOARD_HEIGHT - 1
-            For j As Integer = 0 To BOARD_WIDTH - 1
+        For col As Integer = 0 To BOARD_HEIGHT - 1
+            For row As Integer = 0 To BOARD_WIDTH - 1
 
-                board(i, j) = "# "
+                board(col, row) = EMPTY_SLOT
 
             Next
         Next
