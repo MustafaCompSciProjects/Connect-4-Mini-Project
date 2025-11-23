@@ -1,4 +1,6 @@
 ﻿Imports System
+Imports System.Numerics
+Imports System.Threading
 Imports Utilities
 
 Module Program
@@ -19,19 +21,19 @@ Module Program
         Console.Clear()
         Console.WriteLine($"Hello {players(0)} and {players(1)}, I am the Connect 4 program")
 
-        'System.Threading.Thread.Sleep(1000)
+        'System.Threading.Thread.Sleep(1000)
 
-        Console.Clear()
+        Console.Clear()
 
         Dim mainMenuChoice As Integer
 
-        'Get a valid option
-        Do
+        'Get a valid option
+        Do
             mainMenuChoice = GetIntInput($"Would you like to: {vbCrLf} 1. Play Game {vbCrLf} 2. Exit")
         Loop Until mainMenuChoice = 1 Or mainMenuChoice = 2
 
-        'Carry out that option
-        If mainMenuChoice = 1 Then
+        'Carry out that option
+        If mainMenuChoice = 1 Then
             PlayGame(players, playerSymbols)
         Else
             End
@@ -63,7 +65,7 @@ Module Program
     End Sub
 
     Sub PlayGame(ByVal players() As String, ByRef playerSymbols() As Char)
-        Dim gameBoard(BOARD_WIDTH, BOARD_HEIGHT) As String
+        Dim gameBoard(BOARD_HEIGHT - 1, BOARD_WIDTH - 1) As String
 
         PickSymbols(playerSymbols)
 
@@ -73,25 +75,42 @@ Module Program
 
         Do
             For Each symbol In playerSymbols
-                PlaceCounter(symbol, gameBoard)
-                Console.Clear()
-                PrintBoard(gameBoard)
+                PlaceCounter(symbol, gameBoard, playerSymbols)
+                'Console.Clear()
+                PrintBoard(gameBoard)
+                If IsBoardFull(gameBoard) Then
+                    Console.WriteLine($"The board is full, its a tie!")
+                    Exit Do
+                End If
             Next
         Loop
     End Sub
+    Function IsBoardFull(board(,) As String)
 
-    Sub PlaceCounter(ByVal symbol As Char, ByRef board(,) As String)
+        For row As Integer = 0 To BOARD_HEIGHT - 1
 
-        'Get and validate the column that the player wants to move in
-        Dim placeLocation As Integer
+            For col As Integer = 0 To BOARD_WIDTH - 1
+
+                If board(row, col) = EMPTY_SLOT Then
+                    Return False
+                End If
+
+            Next
+        Next
+        Return True
+    End Function
+    Sub PlaceCounter(ByVal symbol As Char, ByRef board(,) As String, ByVal symbolList() As Char)
+        'Get and validate the column that the player wants to move in
+        Dim placeColumn As Integer
+        Dim placeRow As Integer
+
         Do
-            placeLocation = GetIntInput($"What column would you like to place it in? (1-{BOARD_WIDTH})") - 1
+            placeColumn = GetIntInput($"What column would you like to place it in? (1-{BOARD_WIDTH})") - 1
+            'Ensure desired move is within range and is available
+            If Not IsInRange(placeColumn, BOARD_WIDTH - 1, 0) Then
 
-            'Ensure desired move is within range and is available
-            If Not IsInRange(placeLocation, BOARD_WIDTH - 1, 0) Then
-                Console.WriteLine($"Failed isinrange check")
-            ElseIf Not board(0, placeLocation) = EMPTY_SLOT Then
-                Console.WriteLine($"Failed board position check")
+            ElseIf Not board(BOARD_HEIGHT - 1, placeColumn) = EMPTY_SLOT Then
+
             Else
                 Exit Do
             End If
@@ -99,47 +118,53 @@ Module Program
             Console.WriteLine($"Please select a slot from 1-{BOARD_WIDTH} that is available")
         Loop
 
-        Console.WriteLine("Got out of location validation")
+        'Check slots below the placed location and move down if possible
+        For i As Integer = BOARD_HEIGHT - 1 To 1 Step -1
 
-        'Check slots below the placed location and move down if possible
-        For i As Integer = 0 To BOARD_HEIGHT - 1
-            If board(i + 1, placeLocation) = EMPTY_SLOT Then
-                'If the spot below is empty, do nothing and move further down
-            Else
-                'Once there are no more empty spots, place the counter
-                board(i, placeLocation) = symbol & " "
-                Exit For
+            If board(i - 1, placeColumn) = EMPTY_SLOT Then
+                'If the spot below is available, then place in that spot and remove from above
+                board(i - 1, placeColumn) = symbol & " "
+                board(i, placeColumn) = EMPTY_SLOT
             End If
         Next
+
+        CheckForWin(symbol, board, placeColumn, placeRow)
+
     End Sub
 
+    Sub CheckForWin(ByVal symbol As Char, ByRef board(,) As String, ByRef recentX As Integer, ByRef recentY As Integer)
+
+        'Use the recent coordinates to check each possible direction relative to the latest move. More efficicent.
+
+    End Sub
 
     Sub GetNames(players())
-        'Count number of players (defined in main)
-        Dim numPlayers As Integer = players.Count - 1
+        'Count number of players (defined in main)
+        Dim numPlayers As Integer = players.Count - 1
 
         For i As Integer = 0 To numPlayers
 
-            'Get player names for each of them
-            players(i) = GetStrInput($"Whats player {i + 1}'s name?")
+            'Get player names for each of them
+            players(i) = GetStrInput($"Whats player {i + 1}'s name?")
 
         Next
     End Sub
 
     Sub PrintBoard(ByRef board(,) As String)
 
-        'Setup the top row of numbers
-        Console.Write("  ")
+        'Setup the top row of numbers
+        Console.Write("  ")
         For i As Integer = 1 To BOARD_WIDTH
             Console.Write($"{i} ")
         Next
         Console.WriteLine()
 
-        'Show the board with its row number first
-        For i As Integer = 0 To BOARD_HEIGHT - 1
+        'Show the board with its row number first
+        For i As Integer = BOARD_HEIGHT - 1 To 0 Step -1
             Console.Write($"{i + 1} ")
 
             For j As Integer = 0 To BOARD_WIDTH - 1
+
                 Console.Write(board(i, j))
 
             Next
@@ -149,12 +174,9 @@ Module Program
     End Sub
 
     Sub InitBoard(ByVal board(,) As String)
-
-        For col As Integer = 0 To BOARD_HEIGHT - 1
-            For row As Integer = 0 To BOARD_WIDTH - 1
-
-                board(col, row) = EMPTY_SLOT
-
+        For row As Integer = 0 To BOARD_HEIGHT - 1
+            For col As Integer = 0 To BOARD_WIDTH - 1
+                board(row, col) = EMPTY_SLOT
             Next
         Next
 
