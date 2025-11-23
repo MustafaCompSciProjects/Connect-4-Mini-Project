@@ -107,7 +107,7 @@ Module Program
         Do
             placeColumn = GetIntInput($"What column would you like to place it in? (1-{BOARD_WIDTH})") - 1
             'Ensure desired move is within range and is available
-            If Not IsInRange(placeColumn, BOARD_WIDTH - 1, 0) Then
+            If Not IsInRange(placeColumn, 0, BOARD_WIDTH - 1) Then
 
             ElseIf Not board(BOARD_HEIGHT - 1, placeColumn) = EMPTY_SLOT Then
 
