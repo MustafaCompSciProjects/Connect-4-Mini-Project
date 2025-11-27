@@ -13,8 +13,6 @@ Module Program
 
     Sub Main()
 
-
-
         Dim playerSymbols(NUMBER_OF_PLAYERS - 1) As Char
 
         If IsNothing(players(0)) Then
@@ -74,17 +72,19 @@ Module Program
 
         InitBoard(gameBoard)
 
-        PrintBoard(gameBoard)
+        PrintBoard(gameBoard, Nothing, playerSymbols)
 
         Do
             For Each symbol In playerSymbols
                 PlaceCounter(symbol, gameBoard, playerSymbols)
                 'Console.Clear()
-                PrintBoard(gameBoard)
+                PrintBoard(gameBoard, symbol, playerSymbols)
+
                 If IsBoardFull(gameBoard) Then
                     Console.WriteLine($"The board is full, its a tie!")
                     Exit Do
                 End If
+
             Next
         Loop
     End Sub
@@ -102,6 +102,7 @@ Module Program
         Next
         Return True
     End Function
+
     Sub PlaceCounter(ByVal symbol As Char, ByRef board(,) As String, ByVal symbolList() As Char)
         'Get and validate the column that the player wants to move in
         Dim placeColumn As Integer
@@ -237,9 +238,81 @@ Module Program
             Main()
         End If
 
-        '== Y=X ==
+        '== POSITIVE DIAGONAL CHECK ==
+        Dim posDiagToCheckX As Integer
+        Dim posDiagToCheckY As Integer
+        Dim posDiagInARow As Integer = 1
 
+        'Top-right direction (decreasing Y, increasing X)
+        For i As Integer = 1 To 3
+            posDiagToCheckX = recentX + i
+            posDiagToCheckY = recentY - i
+            If Not (posDiagToCheckX < BOARD_WIDTH AndAlso posDiagToCheckY >= 0) Then
+                Exit For
+            End If
+            If Not board(posDiagToCheckY, posDiagToCheckX) = symbol & " " Then
+                Exit For
+            End If
+            posDiagInARow += 1
+        Next
 
+        'Bottom-left direction (increasing Y, decreasing X)
+        For i As Integer = 1 To 5
+            posDiagToCheckX = recentX - i
+            posDiagToCheckY = recentY + i
+            If Not (posDiagToCheckX >= 0 AndAlso posDiagToCheckY < BOARD_HEIGHT) Then
+                Exit For
+            End If
+            If Not board(posDiagToCheckY, posDiagToCheckX) = symbol & "Then " Then
+                Exit For
+            End If
+            posDiagInARow += 1
+        Next
+
+        If posDiagInARow >= 4 Then
+            'WIN CONDITION
+            Console.WriteLine($"{players(playerList.IndexOf(symbol))} has won")
+            Thread.Sleep(1000)
+            Main()
+        End If
+
+        '== NEGATIVE DIAGONAL CHECK  ==
+        Dim negDiagToCheckX As Integer
+        Dim negDiagToCheckY As Integer
+        Dim negDiagInARow As Integer = 1
+
+        'Bottom-right direction (increasing Y, increasing X)
+        For i As Integer = 1 To 3
+            negDiagToCheckX = recentX + i
+            negDiagToCheckY = recentY + i
+            If Not (negDiagToCheckX < BOARD_WIDTH AndAlso negDiagToCheckY < BOARD_HEIGHT) Then
+                Exit For
+            End If
+            If Not board(negDiagToCheckY, negDiagToCheckX) = symbol & " " Then
+                Exit For
+            End If
+            negDiagInARow += 1
+        Next
+
+        'Top-left direction (decreasing Y, decreasing X)
+        For i As Integer = 1 To 5
+            negDiagToCheckX = recentX - i
+            negDiagToCheckY = recentY - i
+            If Not (negDiagToCheckX >= 0 AndAlso negDiagToCheckY >= 0) Then
+                Exit For
+            End If
+            If Not board(negDiagToCheckY, negDiagToCheckX) = symbol & " " Then
+                Exit For
+            End If
+            negDiagInARow += 1
+        Next
+
+        If negDiagInARow >= 4 Then
+            'WIN CONDITION
+            Console.WriteLine($"{players(playerList.IndexOf(symbol))} has won")
+            Thread.Sleep(1000)
+            Main()
+        End If
 
 
     End Sub
@@ -256,10 +329,11 @@ Module Program
         Next
     End Sub
 
-    Sub PrintBoard(ByRef board(,) As String)
+    Sub PrintBoard(ByRef board(,) As String, ByVal symbol As Char, ByVal symbolList() As Char)
 
         'Setup the top row of numbers
-        Console.Write("  ")
+        Console.ForegroundColor = 15 'White
+        Console.Write("  ")
         For i As Integer = 1 To BOARD_WIDTH
             Console.Write($"{i} ")
         Next
@@ -267,12 +341,22 @@ Module Program
 
         'Show the board with its row number first
         For i As Integer = BOARD_HEIGHT - 1 To 0 Step -1
+
+            Console.ForegroundColor = 15 'White
             Console.Write($"{i + 1} ")
+            Console.ResetColor()
 
             For j As Integer = 0 To BOARD_WIDTH - 1
 
+                If board(i, j) = EMPTY_SLOT Then
+                    Console.ForegroundColor = 8 'Background as light gray
+                Else
+                    Console.ForegroundColor = (9 + Array.IndexOf(symbolList, CChar(board(i, j).Trim)) Mod 15) 'loop colors starting at 9 based on number of players
+                End If
+
                 Console.Write(board(i, j))
 
+                Console.ResetColor()
             Next
             Console.WriteLine()
         Next
@@ -287,6 +371,5 @@ Module Program
         Next
 
     End Sub
-
 
 End Module
