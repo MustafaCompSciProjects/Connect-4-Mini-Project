@@ -19,10 +19,9 @@ Module Program
             GetNames(players)
             Console.WriteLine($"Hello {players(0)} and {players(1)}, I am the Connect 4 program")
         End If
-        Console.Clear()
 
 
-        'System.Threading.Thread.Sleep(1000)
+        System.Threading.Thread.Sleep(1000)
 
         Console.Clear()
 
@@ -77,8 +76,6 @@ Module Program
         Do
             For Each symbol In playerSymbols
                 PlaceCounter(symbol, gameBoard, playerSymbols)
-                'Console.Clear()
-                PrintBoard(gameBoard, symbol, playerSymbols)
 
                 If IsBoardFull(gameBoard) Then
                     Console.WriteLine($"The board is full, its a tie!")
@@ -130,12 +127,22 @@ Module Program
                 board(i - 1, placeColumn) = symbol & " "
                 board(i, placeColumn) = EMPTY_SLOT
                 placeRow = i - 1
+            ElseIf board(i, placeColumn) = EMPTY_SLOT Then
+                board(i, placeColumn) = symbol & " "
             End If
         Next
 
-        Console.WriteLine($"Calling CheckForWin()")
+        Console.Clear()
+        PrintBoard(board, symbol, symbolList)
+
         CheckForWin(symbol, board, placeColumn, placeRow, symbolList)
 
+    End Sub
+
+    Sub WinReached(PlayerName)
+        Console.WriteLine($"{PlayerName} has won")
+        Thread.Sleep(1000)
+        Main()
     End Sub
 
     Sub CheckForWin(ByVal symbol As Char, ByRef board(,) As String, ByRef recentX As Integer, ByRef recentY As Integer, ByVal playerList As String)
@@ -181,11 +188,8 @@ Module Program
 
         If xInARow >= 4 Then
             'WIN CONDITION
-            Console.WriteLine($"{players(playerList.IndexOf(symbol))} has won")
-            Thread.Sleep(1000)
-            Main()
+            WinReached(players(playerList.IndexOf(symbol)))
         End If
-
         '== VERTICAL CHECK ==
         Dim yToCheck As Integer
         Dim yInARow As Integer = 1
@@ -216,26 +220,19 @@ Module Program
 
             yToCheck = recentY - i
             If Not yToCheck >= 0 Then
-                Console.WriteLine($"Failed check within board height")
                 Exit For
             End If
 
             If Not board(yToCheck, recentX) = symbol & " " Then
-                Console.WriteLine($"Failed check {yToCheck}")
                 Exit For
             End If
 
             yInARow += 1
-            Console.WriteLine($"DEBUG: Checked {yToCheck}")
-
-            Console.WriteLine($"DEBUG: Y in a row is {yInARow}")
         Next
 
         If yInARow >= 4 Then
             'WIN CONDITION
-            Console.WriteLine($"{players(playerList.IndexOf(symbol))} has won")
-            Thread.Sleep(1000)
-            Main()
+            WinReached(players(playerList.IndexOf(symbol)))
         End If
 
         '== POSITIVE DIAGONAL CHECK ==
@@ -271,9 +268,7 @@ Module Program
 
         If posDiagInARow >= 4 Then
             'WIN CONDITION
-            Console.WriteLine($"{players(playerList.IndexOf(symbol))} has won")
-            Thread.Sleep(1000)
-            Main()
+            WinReached(players(playerList.IndexOf(symbol)))
         End If
 
         '== NEGATIVE DIAGONAL CHECK  ==
@@ -309,9 +304,7 @@ Module Program
 
         If negDiagInARow >= 4 Then
             'WIN CONDITION
-            Console.WriteLine($"{players(playerList.IndexOf(symbol))} has won")
-            Thread.Sleep(1000)
-            Main()
+            WinReached(players(playerList.IndexOf(symbol)))
         End If
 
 
@@ -324,8 +317,21 @@ Module Program
         For i As Integer = 0 To numPlayers
 
             'Get player names for each of them
-            players(i) = GetStrInput($"Whats player {i + 1}'s name?")
+            Dim nameChosen As String
+            Dim validName As Boolean = False
 
+            Do
+                nameChosen = GetStrInput($"What is player {i + 1}s name")
+
+                If Not players.Contains(nameChosen) Then
+                    validName = True
+                Else
+                    Console.WriteLine("Please enter a unique name")
+
+                End If
+            Loop Until validName
+
+            players(i) = nameChosen
         Next
     End Sub
 
