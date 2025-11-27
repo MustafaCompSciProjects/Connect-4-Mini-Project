@@ -30,10 +30,12 @@ Module Program
         'Get a valid option
         Do
             mainMenuChoice = GetIntInput($"Would you like to: {vbCrLf} 1. Play Game {vbCrLf} 2. Exit")
-        Loop Until mainMenuChoice = 1 Or mainMenuChoice = 2
+            Console.WriteLine("Please enter a valid number")
+        Loop Until IsInRange(mainMenuChoice, 1, 2)
+        Console.Clear()
 
-        'Carry out that option
-        If mainMenuChoice = 1 Then
+        'Carry out that option
+        If mainMenuChoice = 1 Then
             PlayGame(playerSymbols)
         Else
             End
