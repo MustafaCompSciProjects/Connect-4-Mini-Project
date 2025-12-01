@@ -8,6 +8,7 @@ Module Program
     Const BOARD_HEIGHT As Integer = 6
     Const NUMBER_OF_PLAYERS As Integer = 2
     Const EMPTY_SLOT As String = "# "
+    Const COMPUTER_SYMBOL As Char = "¤"
 
     Dim players(NUMBER_OF_PLAYERS - 1) As String
 
@@ -29,18 +30,80 @@ Module Program
 
         'Get a valid option
         Do
-            mainMenuChoice = GetIntInput($"Would you like to: {vbCrLf} 1. Play Game {vbCrLf} 2. Exit")
+            mainMenuChoice = GetIntInput($"Would you like to: {vbCrLf} 1. Play Game {vbCrLf} 2. Play vs AI {vbCrLf} 3. Exit")
             Console.WriteLine("Please enter a valid number")
-        Loop Until IsInRange(mainMenuChoice, 1, 2)
+        Loop Until IsInRange(mainMenuChoice, 1, 3)
         Console.Clear()
 
         'Carry out that option
         If mainMenuChoice = 1 Then
             PlayGame(playerSymbols)
+        ElseIf mainMenuChoice = 2 Then
+            PlayComputer(playerSymbols)
         Else
             End
         End If
 
+    End Sub
+
+    Sub PlayComputer(playerSymbols() As Char)
+        Dim gameBoard(BOARD_HEIGHT - 1, BOARD_WIDTH - 1) As String
+
+        Dim symbol As Char = GetCharInput("What would you like your symbol to be")
+        playerSymbols(0) = symbol
+        playerSymbols(1) = "¤"
+
+        InitBoard(gameBoard)
+
+        PrintBoard(gameBoard, Nothing, playerSymbols)
+
+        Do
+
+            PlaceCounter(symbol, gameBoard, playerSymbols)
+
+            GetAIMove(gameBoard, playerSymbols)
+
+            If IsBoardFull(gameBoard) Then
+                Console.WriteLine($"The board is full, its a tie!")
+                Exit Do
+            End If
+        Loop
+    End Sub
+
+    Sub GetAIMove(ByRef board(,) As String, symbolList() As Char)
+        Dim symbol As Char = "¤"
+        'Get and validate the column that the player wants to move in
+        Dim placeColumn As Integer
+        Dim placeRow As Integer
+
+        Dim rnd As New Random
+        Do
+            placeColumn = rnd.Next(0, 7)
+            'Ensure desired move is within is available
+            If Not board(BOARD_HEIGHT - 1, placeColumn) = EMPTY_SLOT Then
+
+            Else
+                Exit Do
+            End If
+        Loop
+
+        'Check slots below the placed location and move down if possible
+        For i As Integer = BOARD_HEIGHT - 1 To 1 Step -1
+
+            If board(i - 1, placeColumn) = EMPTY_SLOT Then
+                'If the spot below is available, then place in that spot and remove from above
+                board(i - 1, placeColumn) = symbol & " "
+                board(i, placeColumn) = EMPTY_SLOT
+                placeRow = i - 1
+            ElseIf board(i, placeColumn) = EMPTY_SLOT Then
+                board(i, placeColumn) = symbol & " "
+            End If
+        Next
+
+        Console.Clear()
+        PrintBoard(board, symbol, symbolList)
+
+        CheckForWin(symbol, board, placeColumn, placeRow, symbolList)
     End Sub
 
     Sub PickSymbols(playerSymbols() As Char)
